@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "agentidentityprotocol",
+  "name": "agentidentityprotocol-dev",
   "compatibility_date": "2026-11-24",
   "assets": {
     "directory": "./dist",
