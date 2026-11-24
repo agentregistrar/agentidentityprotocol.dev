@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://agentidentityprotocol.dev/sitemap-index.xml

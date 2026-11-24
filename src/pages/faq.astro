@@ -1,0 +1,26 @@
+---
+import Layout, { type Heading } from "../layouts/Layout.astro";
+import { FAQ_ITEMS } from "../data/faq";
+
+const title = "FAQ and stewardship";
+const description =
+  "Frequently asked questions, protocol comparisons, scope disambiguation, and stewardship for the Agent Identity Protocol (agent-identity-protocol).";
+
+const headings: Heading[] = FAQ_ITEMS.map((item) => ({
+  depth: 2,
+  slug: item.id,
+  text: item.question,
+}));
+---
+
+<Layout title={title} description={description} canonicalPath="/faq/" headings={headings}>
+  <h1>Frequently asked questions</h1>
+  {
+    FAQ_ITEMS.map((item) => (
+      <section aria-labelledby={item.id}>
+        <h2 id={item.id}>{item.question}</h2>
+        <Fragment set:html={item.html} />
+      </section>
+    ))
+  }
+</Layout>

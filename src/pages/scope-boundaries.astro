@@ -1,0 +1,31 @@
+---
+import { getEntry, render } from "astro:content";
+import Layout from "../layouts/Layout.astro";
+import SourceBanner from "../components/SourceBanner.astro";
+
+const entry = await getEntry("generated", "scope-boundaries");
+if (!entry) {
+  throw new Error('Missing generated content entry "scope-boundaries"');
+}
+
+const { Content, headings } = await render(entry);
+---
+
+<Layout
+  title={entry.data.title}
+  description={entry.data.description}
+  canonicalPath="/scope-boundaries/"
+  headings={headings}
+  tocMaxDepth={2}
+>
+  <SourceBanner
+    specTag={entry.data.specTag}
+    wireVersion={entry.data.wireVersion}
+    releaseDate={entry.data.releaseDate}
+    commit={entry.data.commit}
+    sourcePath={entry.data.sourcePath}
+    rawMarkdownPath="/scope-boundaries.md"
+  />
+
+  <Content />
+</Layout>

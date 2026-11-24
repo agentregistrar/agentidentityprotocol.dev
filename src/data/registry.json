@@ -1,0 +1,111 @@
+{
+  "registry": "Agent Identity Protocol implementation registry",
+  "description": "Machine-readable registry of Relying Parties whose published discovery document passes the identity-only Agent Identity Protocol conformance validator. The human-readable view is registry/README.md; the two are kept in lockstep.",
+  "protocol": "agent-identity-protocol",
+  "protocol_version": "2.0",
+  "spec": "agent-identity-protocol.md",
+  "registry_criteria": "registry/README.md",
+  "updated_at": "2026-10-26",
+  "capability_vocabulary": [
+    "agent_signup",
+    "post_signup_context"
+  ],
+  "capability_vocabulary_note": "Protocol capabilities only. Vendor features such as provisioning, catalogs, SKUs, pricing, OTP endpoints, and resource APIs are vendor responsibilities documented in the vendor's post-signup guide, not protocol capabilities, and must never appear here.",
+  "verification_note": "OPTIONAL per-entry `verification` object (broker, level, attestation_jti, checked_at, status), validated by registry/implementations.schema.json. Conformance and verification are separate, and the object is a snapshot at checked_at. VaporCloud carries a domain-level snapshot from the live 2026-10-26 check; the registry is not a live feed and verification is not a safety or endorsement claim.",
+  "validator": {
+    "id": "agent-identity-protocol",
+    "version": "1.2.0",
+    "script": "src/validate-discovery.ts",
+    "run": "pnpm validate:discovery <url-or-file> --json",
+    "evidence_note": "The reference_run and fixture_run below are the recorded v1.0.0 release evidence, retained here as historical record. The current validator is 1.2.0; the VaporCloud entry records the live URL-mode v1.2.0 run from 2026-10-26. Its verification object is a snapshot at checked_at, not a live status feed.",
+    "reference_run": {
+      "date": "2026-10-17",
+      "command": "pnpm validate:discovery http://localhost:3001/.well-known/agent-signup.json --json",
+      "mode": "url",
+      "source": "http://localhost:3001/.well-known/agent-signup.json",
+      "target": "locally started VaporCloud reference implementation (placeholder environment variables only)",
+      "exit_code": 0,
+      "valid": true,
+      "counts": {
+        "passed": 22,
+        "failed": 0,
+        "warnings": 0,
+        "probes": 0
+      },
+      "observed": {
+        "protocol": "agent-identity-v1",
+        "audience": "vaporcloud",
+        "providerName": "VaporCloud"
+      }
+    },
+    "fixture_run": {
+      "date": "2026-10-17",
+      "command": "pnpm validate:discovery fixtures/valid-full.json --json",
+      "mode": "file",
+      "source": "fixtures/valid-full.json",
+      "target": "checked-in VaporCloud identity-only discovery fixture",
+      "exit_code": 0,
+      "valid": true,
+      "counts": {
+        "passed": 17,
+        "failed": 0,
+        "warnings": 0,
+        "probes": 0
+      },
+      "observed": {
+        "protocol": "agent-identity-v1",
+        "audience": "vaporcloud",
+        "providerName": "VaporCloud"
+      }
+    }
+  },
+  "implementations": [
+    {
+      "name": "VaporCloud",
+      "role": "reference implementation",
+      "url": "https://skdl.dev",
+      "discovery_url": "https://skdl.dev/.well-known/agent-signup.json",
+      "discovery_url_note": "Live production discovery URL for the VaporCloud reference implementation, validated from the public internet on 2026-10-26.",
+      "audience": "vaporcloud",
+      "protocol": "agent-identity-protocol",
+      "protocol_version": "2.0",
+      "capabilities": [
+        "agent_signup",
+        "post_signup_context"
+      ],
+      "contact": "security@skdl.dev",
+      "post_signup_guide": "https://skdl.dev/docs/SKILL.md",
+      "validated_at": "2026-10-26",
+      "validator_version": "1.2.0",
+      "validator_evidence": {
+        "command": "pnpm validate:discovery https://skdl.dev/.well-known/agent-signup.json --verify-attestation --require-attestation --trusted-rp-broker https://agentregistrar.dev --json",
+        "mode": "url",
+        "source": "https://skdl.dev/.well-known/agent-signup.json",
+        "exit_code": 0,
+        "valid": true,
+        "counts": {
+          "passed": 23,
+          "failed": 0,
+          "warnings": 0,
+          "probes": 0
+        },
+        "observed": {
+          "protocol": "agent-identity-v1",
+          "audience": "vaporcloud",
+          "providerName": "VaporCloud",
+          "attestation_status": "verified",
+          "attestation_level": "domain",
+          "attestation_jti": "rpa_01m5vggft4vn3x9bfw9wy6b8zn"
+        },
+        "note": "Live URL-mode v1.2.0 run on 2026-10-26: 23 checks passed, 0 failed, 0 warnings; the attestation verified against https://agentregistrar.dev/.well-known/jwks.json at 2026-10-26T07:23:40.000Z. The verification object below is the snapshot from this check."
+      },
+      "verification": {
+        "broker": "https://agentregistrar.dev",
+        "level": "domain",
+        "attestation_jti": "rpa_01m5vggft4vn3x9bfw9wy6b8zn",
+        "checked_at": "2026-10-26T07:23:40.000Z",
+        "status": "active"
+      }
+    }
+  ]
+}

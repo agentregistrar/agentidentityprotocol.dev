@@ -1,0 +1,22 @@
+---
+import { CURRENT_SPEC, SITE_NAME, SITE_URL } from "../../site.config";
+
+const targetPath = CURRENT_SPEC.specPath;
+const canonicalUrl = `${SITE_URL.replace(/\/$/, "")}${targetPath}`;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="refresh" content={`0;url=${targetPath}`} />
+    <link rel="canonical" href={canonicalUrl} />
+    <meta name="robots" content="noindex" />
+    <title>Specification — {SITE_NAME}</title>
+  </head>
+  <body>
+    <p>
+      <a href={targetPath}>Redirecting to the current specification ({CURRENT_SPEC.minor})...</a>
+    </p>
+  </body>
+</html>

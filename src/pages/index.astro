@@ -1,0 +1,180 @@
+---
+import Layout from "../layouts/Layout.astro";
+import {
+  CURRENT_SPEC,
+  NPM_PACKAGE,
+  PROTOCOL_ID,
+  SCHEMAS,
+  SITE_NAME,
+  SITE_URL,
+} from "../site.config";
+
+const title = "Agent Identity Protocol specification";
+const description =
+  "The Agent Identity Protocol (agent-identity-protocol) specification: an open, Apache-2.0 contract for brokered agent signup.";
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: SITE_NAME,
+  alternateName: PROTOCOL_ID,
+  url: SITE_URL,
+  description,
+  license: "https://www.apache.org/licenses/LICENSE-2.0",
+};
+
+const minimalDiscoveryJson = JSON.stringify(
+  {
+    protocol: PROTOCOL_ID,
+    protocol_version: CURRENT_SPEC.wireVersion,
+    audience: "vaporcloud",
+    provider_name: "VaporCloud",
+    issuer_allowlist: ["https://id.agentregistrar.dev"],
+    required_scopes: ["tos:accept"],
+    terms: {
+      version: "2026.1",
+      url: "https://vaporcloud.example/terms",
+    },
+    endpoints: {
+      agent_signup: "https://vaporcloud.example/api/signup/agent",
+    },
+  },
+  null,
+  2,
+);
+
+const validatorCommand = `npx ${NPM_PACKAGE} validate https://example.com/.well-known/agent-signup.json`;
+---
+
+<Layout title={title} description={description} canonicalPath="/" jsonLd={jsonLd}>
+  <section class="hero">
+    <h1>{SITE_NAME}</h1>
+    <p class="status-line">
+      {CURRENT_SPEC.tag} · wire {CURRENT_SPEC.wireVersion} · Apache-2.0 · {PROTOCOL_ID}
+    </p>
+    <p>
+      The Agent Identity Protocol (<code>{PROTOCOL_ID}</code>) is an open, Apache-2.0
+      specification for brokered agent signup. A relying party publishes
+      <code>/.well-known/agent-signup.json</code>, an agent presents a signed broker assertion, and
+      the provider receives a verified human-ownership and terms-acceptance record without the
+      broker holding provider credentials or sitting in the post-signup request path.
+    </p>
+    <div class="action-links">
+      <a href={CURRENT_SPEC.specPath}>Read the specification</a>
+      <a href="/implement/">Implementation guide</a>
+      <a href="/validate/">Validator</a>
+    </div>
+  </section>
+
+  <h2>How it works</h2>
+  <ol class="step-list">
+    <li>
+      <strong>Discover</strong> — The agent fetches <code>GET /.well-known/agent-signup.json</code>
+      from the relying party (<a href={`${CURRENT_SPEC.specPath}#4-discovery-endpoint--transport`}
+        >§4 Discovery endpoint</a
+      >).
+    </li>
+    <li>
+      <strong>Check</strong> — The agent verifies required fields, issuer allowlist, terms URL, and
+      optional relying party attestation (<a
+        href={`${CURRENT_SPEC.specPath}#5-discovery-document-reference-identity-only`}
+        >§5 Discovery document</a
+      >).
+    </li>
+    <li>
+      <strong>Prove</strong> — The broker fetches the terms document, records human-approved
+      acceptance, and signs a short-lived assertion bound to the provider audience (<a
+        href={`${CURRENT_SPEC.specPath}#6-tos-binding`}>§6 ToS binding</a
+      >).
+    </li>
+    <li>
+      <strong>Sign up</strong> — The agent submits the assertion to{" "}
+      <code>POST endpoints.agent_signup</code> and receives account credentials or handoff context
+      directly from the provider (<a
+        href={`${CURRENT_SPEC.specPath}#7-assertion-agent_signup-and-agent_login-handshakes`}
+        >§7 Handshakes</a
+      >).
+    </li>
+    <li>
+      <strong>Record</strong> — The provider optionally returns a signed signup receipt and
+      post-signup context pointer (<a
+        href={`${CURRENT_SPEC.specPath}#11-contract-e-identity-facts--the-context-pointer`}
+        >§11 Receipts &amp; context</a
+      >).
+    </li>
+  </ol>
+
+  <h2>Minimal discovery example</h2>
+  <p>
+    A minimal conformant <code>/.well-known/agent-signup.json</code> document declares the wire
+    protocol, audience identifier, allowed assertion issuers, terms metadata, and signup endpoint:
+  </p>
+  <pre><code>{minimalDiscoveryJson}</code></pre>
+  <p>Validate a published discovery document against the schema and transport rules:</p>
+  <pre><code>{validatorCommand}</code></pre>
+
+  <h2>Scope and non-goals</h2>
+  <p>
+    The protocol covers relying party discovery, terms-hash binding, brokered signup assertions,
+    and signed receipts. It explicitly excludes Know Your Customer (KYC) checks, provider
+    credential custody, runtime abuse enforcement, and vendor product catalogs or provisioning APIs
+    in discovery. See <a href="/scope-boundaries/">Scope boundaries</a> for the full boundary
+    checklist.
+  </p>
+
+  <h2>Specification documents and schemas</h2>
+  <ul>
+    <li>
+      <a href={CURRENT_SPEC.specPath}>Normative specification ({CURRENT_SPEC.tag})</a> — Wire
+      contracts, verification rules, and security requirements.
+    </li>
+    <li>
+      <a href="/scope-boundaries/">Scope boundaries</a> — Identity versus vendor responsibilities
+      and review checklist.
+    </li>
+    <li>
+      <a href="/implement/">Implementation guide</a> — Relying party integration steps, examples,
+      and implementation registry summary.
+    </li>
+    <li>
+      <a href="/validate/">Validator guide</a> — CLI usage, exit codes, JSON output, and test
+      fixtures.
+    </li>
+    <li>
+      <a href="/releases/">Release history</a> — Changelog across tagged specification releases.
+    </li>
+    <li>
+      <a href="/faq/">FAQ and stewardship</a> — Protocol comparisons, scope disambiguation, license,
+      and contact details.
+    </li>
+  </ul>
+
+  <h3>JSON Schemas</h3>
+  <p>
+    V1 serves all schemas byte-identically from pinned tag <code>{CURRENT_SPEC.tag}</code>; current{" "}
+    <code>$id</code> URIs remain on <code>docs.agentregistrar.dev</code> pending a coordinated
+    specification patch.
+  </p>
+  <table class="schema-table">
+    <thead>
+      <tr>
+        <th>Schema</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      {
+        SCHEMAS.map((schema) => (
+          <tr>
+            <td>
+              <a href={schema.path}>
+                <code>{schema.file}</code>
+              </a>
+            </td>
+            <td>{schema.description}</td>
+          </tr>
+        ))
+      }
+    </tbody>
+  </table>
+</Layout>

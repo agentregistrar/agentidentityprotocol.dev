@@ -1,0 +1,18 @@
+---
+import Layout from "../layouts/Layout.astro";
+
+const title = "Page not found";
+const description = "The requested page could not be found on agentidentityprotocol.dev.";
+---
+
+<Layout title={title} description={description} canonicalPath="/404.html" noindex={true}>
+  <h1>Page not found</h1>
+  <p>The requested page does not exist or has moved.</p>
+  <ul>
+    <li><a href="/">Overview</a></li>
+    <li><a href="/spec/">Specification</a></li>
+    <li><a href="/implement/">Implementation guide</a></li>
+    <li><a href="/validate/">Validator</a></li>
+    <li><a href="/faq/">FAQ and stewardship</a></li>
+  </ul>
+</Layout>

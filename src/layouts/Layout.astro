@@ -1,0 +1,155 @@
+---
+import "../styles/site.css";
+import {
+  NAV_ITEMS,
+  NPM_URL,
+  PROTOCOL_ID,
+  SITE_NAME,
+  SITE_URL,
+  SPEC_REPO_URL,
+} from "../site.config";
+
+export interface Heading {
+  depth: number;
+  slug: string;
+  text: string;
+}
+
+export interface Props {
+  title: string;
+  description: string;
+  canonicalPath: string;
+  headings?: Heading[];
+  tocMaxDepth?: 2 | 3;
+  jsonLd?: Record<string, unknown>;
+  noindex?: boolean;
+  wide?: boolean;
+}
+
+const {
+  title,
+  description,
+  canonicalPath,
+  headings = [],
+  tocMaxDepth = 2,
+  jsonLd,
+  noindex = false,
+  wide = false,
+} = Astro.props;
+
+const fullTitle = title.includes(SITE_NAME) ? title : `${title} — ${SITE_NAME}`;
+
+const baseUrl = SITE_URL.replace(/\/$/, "");
+const normalizedPath = canonicalPath.startsWith("/") ? canonicalPath : `/${canonicalPath}`;
+const canonicalUrl = `${baseUrl}${normalizedPath}`;
+const ogImageUrl = `${baseUrl}/og.png`;
+
+const tocHeadings = headings.filter((h) => h.depth >= 2 && h.depth <= tocMaxDepth);
+const hasToc = tocHeadings.length > 0;
+
+const currentPath = Astro.url.pathname;
+const isActive = (href: string): boolean => {
+  if (href === "/spec/") {
+    return currentPath === "/spec" || currentPath.startsWith("/spec/");
+  }
+  return currentPath === href || currentPath === href.replace(/\/$/, "");
+};
+
+const pageWrapClass = hasToc
+  ? "page-wrap has-toc"
+  : wide
+    ? "page-wrap wide"
+    : "page-wrap";
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    {noindex && <meta name="robots" content="noindex" />}
+    {!noindex && <link rel="canonical" href={canonicalUrl} />}
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta property="og:site_name" content={SITE_NAME} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:image" content={ogImageUrl} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    {jsonLd && <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />}
+  </head>
+  <body>
+    <a class="skip-link" href="#content">Skip to content</a>
+
+    <header class="site-header">
+      <a class="site-wordmark" href="/">{SITE_NAME}</a>
+      <nav class="site-nav" aria-label="Primary">
+        {
+          NAV_ITEMS.map((item) => (
+            <a
+              href={item.href}
+              aria-current={isActive(item.href) ? "page" : undefined}
+            >
+              {item.label}
+            </a>
+          ))
+        }
+        <a href={SPEC_REPO_URL}>GitHub</a>
+      </nav>
+    </header>
+
+    <div class={pageWrapClass}>
+      {
+        hasToc && (
+          <details class="toc-mobile">
+            <summary>On this page</summary>
+            <ul>
+              {tocHeadings.map((heading) => (
+                <li class={`depth-${heading.depth}`}>
+                  <a href={`#${heading.slug}`}>{heading.text}</a>
+                </li>
+              ))}
+            </ul>
+          </details>
+        )
+      }
+
+      <main id="content" class="prose">
+        <slot />
+      </main>
+
+      {
+        hasToc && (
+          <aside class="toc" aria-label="On this page">
+            <p class="toc-title">On this page</p>
+            <ul>
+              {tocHeadings.map((heading) => (
+                <li class={`depth-${heading.depth}`}>
+                  <a href={`#${heading.slug}`}>{heading.text}</a>
+                </li>
+              ))}
+            </ul>
+          </aside>
+        )
+      }
+    </div>
+
+    <footer class="site-footer">
+      <p>
+        {SITE_NAME} (<code>{PROTOCOL_ID}</code>), Apache-2.0. Maintained by Agent Registrar, the reference broker.
+      </p>
+      <ul class="footer-links">
+        <li><a href={SPEC_REPO_URL}>GitHub</a></li>
+        <li><a href={NPM_URL}>npm</a></li>
+        <li><a href="https://docs.agentregistrar.dev">docs.agentregistrar.dev</a></li>
+        <li><a href="https://agentregistrar.dev">agentregistrar.dev</a></li>
+        <li><a href="/llms.txt">llms.txt</a></li>
+      </ul>
+    </footer>
+  </body>
+</html>

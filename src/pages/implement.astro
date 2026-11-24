@@ -1,0 +1,94 @@
+---
+import { getEntry, render } from "astro:content";
+import Layout from "../layouts/Layout.astro";
+import SourceBanner from "../components/SourceBanner.astro";
+import registry from "../data/registry.json";
+import { SPEC_REPO_URL } from "../site.config";
+
+const entry = await getEntry("generated", "implement");
+if (!entry) {
+  throw new Error('Missing generated content entry "implement"');
+}
+
+const { Content, headings } = await render(entry);
+const allHeadings = [
+  ...headings,
+  { depth: 2, slug: "implementation-registry", text: "Implementation registry" },
+];
+
+const registryTreeUrl = `${SPEC_REPO_URL}/tree/main/registry`;
+---
+
+<Layout
+  title={entry.data.title}
+  description={entry.data.description}
+  canonicalPath="/implement/"
+  headings={allHeadings}
+  tocMaxDepth={2}
+>
+  <SourceBanner
+    specTag={entry.data.specTag}
+    wireVersion={entry.data.wireVersion}
+    releaseDate={entry.data.releaseDate}
+    commit={entry.data.commit}
+    sourcePath={entry.data.sourcePath}
+    rawMarkdownPath="/implement.md"
+  />
+
+  <Content />
+
+  <section aria-labelledby="implementation-registry">
+    <h2 id="implementation-registry">Implementation registry</h2>
+    <p>
+      This list is synced from the machine-readable registry in{" "}
+      <code>agentregistrar/spec/registry/implementations.json</code> for the Agent Identity Protocol
+      (<code>{registry.protocol}</code>). Conformance and verification are separate: conformance
+      reflects validator checks against the discovery document, and verification records are
+      point-in-time snapshots at <code>checked_at</code>, not live status feeds or endorsements.
+    </p>
+
+    {
+      registry.implementations.map((item) => (
+        <article class="registry-card">
+          <p>
+            <strong>{item.name}</strong> <span class="badge">{item.role}</span>{" "}
+            <span class="badge">wire {item.protocol_version}</span>
+          </p>
+          <p>
+            Provider: <a href={item.url}>{item.url}</a>
+            <br />
+            Discovery: <a href={item.discovery_url}><code>{item.discovery_url}</code></a>
+            <br />
+            Capabilities:{" "}
+            {item.capabilities.map((cap, index) => (
+              <>
+                {index > 0 && ", "}
+                <code>{cap}</code>
+              </>
+            ))}
+            <br />
+            Validated: <code>{item.validated_at}</code>
+            {item.verification && (
+              <>
+                <br />
+                Verification snapshot: broker{" "}
+                <a href={item.verification.broker}>{item.verification.broker}</a> · level{" "}
+                <code>{item.verification.level}</code> · status{" "}
+                <code>{item.verification.status}</code> · checked at{" "}
+                <code>{item.verification.checked_at}</code>
+              </>
+            )}
+          </p>
+        </article>
+      ))
+    }
+
+    <p>
+      To add or update an entry, submit a pull request to{" "}
+      <a href={registryTreeUrl}>
+        <code>registry/README.md</code>
+      </a>{" "}
+      in the specification repository.
+    </p>
+  </section>
+</Layout>

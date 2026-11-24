@@ -1,0 +1,51 @@
+---
+import { SPEC_REPO, SPEC_REPO_URL } from "../site.config";
+
+export interface Props {
+  specTag: string;
+  wireVersion: string;
+  releaseDate: string;
+  commit: string;
+  sourcePath: string;
+  rawMarkdownPath: string;
+  showDetails?: boolean;
+}
+
+const {
+  specTag,
+  wireVersion,
+  releaseDate,
+  commit,
+  sourcePath,
+  rawMarkdownPath,
+  showDetails = false,
+} = Astro.props;
+
+const repoBase = SPEC_REPO_URL.replace(/\/$/, "");
+const shortCommit = commit.slice(0, 7);
+const commitUrl = `${repoBase}/commit/${commit}`;
+const cleanPath = sourcePath.replace(/^\/+/, "");
+const sourceUrl =
+  cleanPath === "" || cleanPath === "release-notes"
+    ? `${repoBase}/tree/${commit}`
+    : `${repoBase}/blob/${commit}/${cleanPath}`;
+---
+
+<div class="source-banner">
+  {
+    showDetails ? (
+      <>
+        Release <strong>{specTag}</strong> · Wire <strong>{wireVersion}</strong> · Date{" "}
+        {releaseDate} · Commit <a href={commitUrl}>{shortCommit}</a> ·{" "}
+        <a href={sourceUrl}>View source</a> ·{" "}
+        <a href={rawMarkdownPath}>Raw Markdown</a>
+      </>
+    ) : (
+      <>
+        Generated from {SPEC_REPO} @ {specTag} ·{" "}
+        <a href={sourceUrl}>View source</a> ·{" "}
+        <a href={rawMarkdownPath}>Raw Markdown</a>
+      </>
+    )
+  }
+</div>

@@ -1,0 +1,101 @@
+---
+import { getCollection, render } from "astro:content";
+import Layout from "../../layouts/Layout.astro";
+import SourceBanner from "../../components/SourceBanner.astro";
+import { CURRENT_SPEC, PROTOCOL_ID, SITE_URL, SPEC_REPO_URL } from "../../site.config";
+
+export async function getStaticPaths() {
+  const parseMinor = (v: string): [number, number] => {
+    const match = /^v?(\d+)\.(\d+)$/.exec(v);
+    return match ? [Number(match[1]), Number(match[2])] : [0, 0];
+  };
+
+  const entries = await getCollection("spec");
+  const sorted = [...entries].sort((a, b) => {
+    const [aMajor, aMinor] = parseMinor(a.id.replace(/\.md$/, ""));
+    const [bMajor, bMinor] = parseMinor(b.id.replace(/\.md$/, ""));
+    return bMajor !== aMajor ? bMajor - aMajor : bMinor - aMinor;
+  });
+  const versions = sorted.map((entry) => entry.id.replace(/\.md$/, ""));
+
+  return sorted.map((entry) => {
+    const version = entry.id.replace(/\.md$/, "");
+    return {
+      params: { version },
+      props: { entry, version, versions },
+    };
+  });
+}
+
+const { entry, version, versions } = Astro.props;
+const { Content, headings } = await render(entry);
+
+const isSuperseded = version !== CURRENT_SPEC.minor;
+const pageTitle = isSuperseded
+  ? `Agent Identity Protocol specification (${version})`
+  : entry.data.title;
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  name: entry.data.title,
+  headline: entry.data.title,
+  description: entry.data.description,
+  identifier: PROTOCOL_ID,
+  version: entry.data.specTag,
+  datePublished: entry.data.releaseDate,
+  dateModified: entry.data.releaseDate,
+  url: `${SITE_URL}/spec/${version}/`,
+  license: "https://www.apache.org/licenses/LICENSE-2.0",
+  codeRepository: SPEC_REPO_URL,
+  author: {
+    "@type": "Organization",
+    name: "Agent Registrar",
+    url: "https://agentregistrar.dev",
+  },
+};
+---
+
+<Layout
+  title={pageTitle}
+  description={entry.data.description}
+  canonicalPath={`/spec/${version}/`}
+  headings={headings}
+  tocMaxDepth={3}
+  jsonLd={jsonLd}
+>
+  {
+    isSuperseded && (
+      <div class="superseded-banner" role="note">
+        You are reading {version}. The current specification is{" "}
+        <a href={CURRENT_SPEC.specPath}>{CURRENT_SPEC.minor}</a>.
+      </div>
+    )
+  }
+
+  {
+    versions.length > 1 && (
+      <p class="status-line">
+        Versions:{" "}
+        {versions.map((v, index) => (
+          <>
+            {index > 0 && " · "}
+            {v === version ? <strong>{v}</strong> : <a href={`/spec/${v}/`}>{v}</a>}
+          </>
+        ))}
+      </p>
+    )
+  }
+
+  <SourceBanner
+    specTag={entry.data.specTag}
+    wireVersion={entry.data.wireVersion}
+    releaseDate={entry.data.releaseDate}
+    commit={entry.data.commit}
+    sourcePath={entry.data.sourcePath}
+    rawMarkdownPath={`/spec/${version}.md`}
+    showDetails={true}
+  />
+
+  <Content />
+</Layout>
